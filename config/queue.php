@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    //uses the 'job' queue connection in this file
+    'default' => env('QUEUE_CONNECTION', 'job'),
 
     /*
     |--------------------------------------------------------------------------
@@ -29,6 +30,29 @@ return [
     */
 
     'connections' => [
+
+        //this is the 'job' queue connection
+        'job' => [
+            //uses the redis driver from config/database.php
+            'driver' => 'redis',
+            //uses the 'queue' connection from the redis driver in config/database.php
+            'connection' => 'queue',
+            //this is the redis queue key default prefix that is applied when using this 'job' connection. It can be overriden by explicitly passing the queue name.
+            'queue' => '{job}',
+            'retry_after' => 90,
+            'block_for' => null,
+        ],
+        //this is the 'app' queue connection
+        'app' => [
+            //uses the redis driver from config/database.php
+            'driver' => 'redis',
+            //uses the 'queue' connection from the redis driver in config/database.php
+            'connection' => 'queue',
+            //this is the redis queue key default prefix that is applied when using this 'app' connection.It can be overriden by explicitly passing the queue name.
+            'queue' => '{app}',
+            'retry_after' => 90,
+            'block_for' => null,
+        ],
 
         'sync' => [
             'driver' => 'sync',
