@@ -1,14 +1,13 @@
 # For more information: https://laravel.com/docs/sail
 version: '3'
 services:
-    laravel:
-        image: sail-8.1/app
-        container_name: Laravel
+    laravel.test:
         build:
             context: ./docker/8.1
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
+        image: sail-8.1/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -28,7 +27,7 @@ services:
             - mysql
     mysql:
         image: mysql/mysql-server:8.0
-        container_name: Mysql
+#        container_name: Mysql
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'
         environment:
@@ -48,20 +47,20 @@ services:
             retries: 3
             timeout: 5s
     elasticsearch:
-        image: elasticsearch:7.13.4
-        container_name: Elasticsearch
-        environment:
-            - discovery.type=single-node
-        ports:
-            - '9200:9200'
-            - '9300:9300'
-        volumes:
-            - 'sailelasticsearch:/usr/share/elasticsearch/data'
-        networks:
-            - sail
+         image: elasticsearch:7.17.7
+#        container_name: Elasticsearch
+         environment:
+             - discovery.type=single-node
+         ports:
+             - 9200:9200
+             - 9300:9300
+         volumes:
+             - sail-elasticsearch:/usr/share/elasticsearch/data
+         networks:
+             - sail
     kibana:
-        image: kibana:7.13.4
-        container_name: Kibana
+        image: docker.elastic.co/kibana/kibana:7.17.7
+#        container_name: Kibana
         environment:
             - elasticsearch.hosts=http://elasticsearch:9200
         ports:
@@ -72,21 +71,29 @@ services:
             - elasticsearch
     redis:
         image: redis:alpine
-        container_name: Redis
+#        container_name: Redis
         command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
-            - './data/redis:/data'
+            - ./data/redis:/data
         networks:
             - sail
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
             retries: 3
             timeout: 5s
+    redisinsight:
+        image: redislabs/redisinsight:latest
+        ports:
+            - '8001:8001'
+        volumes:
+            - ./data/redisinsight:/db
+        networks:
+            - sail
     memcached:
         image: memcached:alpine
-        container_name: Memcached
+#        container_name: Memcached
         ports:
             - '${FORWARD_MEMCACHED_PORT:-11211}:11211'
         networks:
@@ -95,7 +102,7 @@ networks:
     sail:
         driver: bridge
 volumes:
-    sail-mysql:
-        driver: local
-    sailelasticsearch:
-        driver: local
+     sail-mysql:
+         driver: local
+     sail-elasticsearch:
+         driver: local
